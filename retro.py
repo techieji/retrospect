@@ -1,21 +1,29 @@
-from vcs import VCS
-from sys import argv, exit
-from os import getcwd as pwd
+"""Autosaving VCS.
 
-def main():
-    if sys.argv[1] == 'init' or os.path.exists(pwd() + '/.retrospect'):
-        vcs = VCS(pwd(), pwd() + '/.retrospect')
-    else:
-        print('Retrospect repository does not exist here. Exiting.')
-        exit(1)
-    if sys.argv[1] == 'revert':
-        vcs.
-    elif sys.argv[1] == 'view':
-        pass
-    elif sys.argv[1] == 'head':
-        pass
-    elif sys.argv[1] == 'inspect':
-        pass
-    elif sys.argv[1] == 'log':
-        pass
+Usage:
+    retro init
+        initializes current directory to have a .git and
+        .retro directory
+    retro start
+        starts watching current directory
+    retro show
+        show tree of changes
+    retro back
+        reverts tree to previous stage
+    retro forwards
+        reverts tree to next stage
+    retro to LOCATION
+        reverts tree to specified location
+    retro commit [ -m MESSAGE ]
+        saves all changes in .retro to .git and deletes all
+        program data (restarting the process). There's no
+        way back from a commit; you're commiting to your
+        future self that there's no need for a revert then
 
+Daemon:
+    written in C and shouldn't be used directly
+"""
+
+import sys
+
+print(sys.executable, __file__)
