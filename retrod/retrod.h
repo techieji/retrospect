@@ -19,6 +19,8 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "list.h"
+
 #define PATH "/tmp/socket"
 #define MAX_BACKLOG 3         // Really no reason for concurrent connections
 
@@ -29,30 +31,32 @@ void perror_and_exit(char* msg) {
 
 #define SAFE_CALL(call) do if ((call) < 0) perror_and_exit(#call); while (0)
 
-struct ChangeGraphs;
+LIST(Change);
 
 struct Change {
     char* current_change_location;    // tar zip file
     struct Change* previous;
-    struct Changes* next;
+    LIST(struct Change)* next;
     int location;     /* Location is going to have semantics; may make long int */
 };
 
-struct Changes {
-    struct Change* graph;
-    struct Changes* next;
-}
+DECLARE_LL(struct Change);
 
 struct MoniteredFolder {
     char* name;
     struct Change* changelog;     // Starts out identical to the fresh repository
 };
 
-int update_global_storage(void);
+DECLARE_LL(struct MoniteredFolder);
+
+LIST(struct MoniteredFolder) moniteredfolders;
+
+int update_global_storage(void);  // Updating ~/.retro directory
 int add_to_watchlist(char* foldername);
 int remove_from_watchlist(char* foldername);
 
 int stash_changes(struct MoniteredFolder);
-int rollback(struct MoniteredFolder, int location);
+int go_to(struct MoniteredFolder, int location);
+int rollback(struct MoniteredFolder);
 
-int moniter(void);      // Processes all file-change events
+void moniter(void);      // Processes all file-change events and does appropriate actions
