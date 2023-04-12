@@ -13,6 +13,8 @@
 
 #include <sys/socket.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <sys/un.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -24,12 +26,9 @@
 #define PATH "/tmp/socket"
 #define MAX_BACKLOG 3         // Really no reason for concurrent connections
 
-void perror_and_exit(char* msg) {
-  perror(msg);
-  exit(1);
-}
+void perror_and_exit(char* msg);
 
-#define SAFE_CALL(call) do if ((call) < 0) perror_and_exit(#call); while (0)
+#define SAFE_CALL(call) do if ((call) < 0) perror_and_exit(#call); while (0)      // Change to include name
 
 LIST(Change);
 
@@ -49,7 +48,7 @@ struct MoniteredFolder {
 
 DECLARE_LL(struct MoniteredFolder);
 
-LIST(struct MoniteredFolder) moniteredfolders;
+extern LIST(struct MoniteredFolder)* moniteredfolders;
 
 int update_global_storage(void);  // Updating ~/.retro directory
 int add_to_watchlist(char* foldername);
