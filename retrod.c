@@ -1,3 +1,14 @@
+/* 
+ * Retrospect Daemon script
+ *
+ * This script performs one action only: updating the .retro folder of all
+ * relevant folders. It receives instructions from the main, user-controlled
+ * executable `retro`. Spec:
+ *    S: shutdown
+ *    M: moniter (a folder)
+ *    D: demoniter
+ */
+
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
@@ -14,6 +25,8 @@ void perror_and_exit(char* msg) {
   exit(1);
 }
 
+#define SAFE_CALL(call) do if ((call) < 0) perror_and_exit(#call); while (0)
+
 int main() {
   int cfd;
   int fd = socket(AF_LOCAL, SOCK_STREAM, 0);
@@ -21,14 +34,12 @@ int main() {
   struct sockaddr_un myaddr, peer_addr;
   socklen_t peer_addr_size;
   if (fd < 0)
-    perror("socket");
+    perror_and_exit("socket");
   memset(&myaddr, 0, sizeof(struct sockaddr_un));
   myaddr.sun_family = AF_UNIX;
   strncpy(myaddr.sun_path, PATH, sizeof(myaddr.sun_path) - 1);
-  if (bind(fd, (struct sockaddr*) &myaddr, sizeof(struct sockaddr_un)) == -1)
-    perror_and_exit("bind");
-  if (listen(fd, MAX_BACKLOG) == -1)
-    perror_and_exit("listen");
+  SAFE_CALL(bind(fd, (struct sockaddr*) &myaddr, sizeof(struct sockaddr_un)));
+  SAFE_CALL(listen(fd, MAX_BACKLOG));
   
   /* Accept connections */
   puts("Waiting for connections...");
@@ -39,14 +50,11 @@ int main() {
 
   /* Process input */
   
-  write(fd, "Echo: ", 6);
-  char* c = malloc(sizeof(char));
-  do {
-    read(cfd, c, 1);
-    write(fd, c, 1);
-  } while (*c != '\0');
-  if (close(fd) < 0)
-    perror_and_exit("close");
-  unlink("/tmp/socket");       // idk how to do this properly
+  write(fd, "Ping", 5); 
+  char* buf = malloc(1024 * sizeof(char));
+  read(cfd, buf, 1024);
+  SAFE_CALL(shutdown(fd, SHUT_RD));
+  SAFE_CALL(close(fd));
+  SAFE_CALL(unlink("/tmp/socket"));
   return 0;
 }

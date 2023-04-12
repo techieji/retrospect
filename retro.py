@@ -25,5 +25,4 @@ Daemon:
 """
 
 import sys
-
-print(sys.executable, __file__)
+import socket
